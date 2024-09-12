@@ -1,120 +1,80 @@
-import { Component, ChangeEvent } from "react";
+import { useState } from "react";
 import TutorialDataService from "../services/tutorial.service";
 import ITutorialData from '../types/tutorial.type';
+import InputField from './partials/input'
 
-type Props = {};
+export default function AddTutorial() {
+    // eslint-disable-next-line
+    const [id, setId] = useState<number | null>(null);
+    // eslint-disable-next-line
+    const [published, setPublished] = useState<boolean>(false);
+    
+    const [title, setTitle] = useState<string>("");
+    const [description, setDescription] = useState<string>("");
+    const [submitted, setSubmitted] = useState<boolean>(false);
 
-type State = ITutorialData & {
-  submitted: boolean
-};
+    const saveTutorial = () => {
+        const data: ITutorialData = {
+            title: title,
+            description: description
+        };
+    
+        TutorialDataService.create(data)
+            .then((response: any) => {
+                setId(response.data.id)
+                setSubmitted(true)
+                setPublished(response.data.published)
+                console.log(response.data);
+            })
+            .catch((e: Error) => {
+                console.log(e);
+            });
+    }
 
-export default class AddTutorial extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.onChangeTitle = this.onChangeTitle.bind(this);
-    this.onChangeDescription = this.onChangeDescription.bind(this);
-    this.saveTutorial = this.saveTutorial.bind(this);
-    this.newTutorial = this.newTutorial.bind(this);
-
-    this.state = {
-      id: null,
-      title: "",
-      description: "",
-      published: false,
-      submitted: false
-    };
-  }
-
-  onChangeTitle(e: ChangeEvent<HTMLInputElement>) {
-    this.setState({
-      title: e.target.value
-    });
-  }
-
-  onChangeDescription(e: ChangeEvent<HTMLInputElement>) {
-    this.setState({
-      description: e.target.value
-    });
-  }
-
-  saveTutorial() {
-    const data: ITutorialData = {
-      title: this.state.title,
-      description: this.state.description
-    };
-
-    TutorialDataService.create(data)
-      .then((response: any) => {
-        this.setState({
-          id: response.data.id,
-          title: response.data.title,
-          description: response.data.description,
-          published: response.data.published,
-          submitted: true
-        });
-        console.log(response.data);
-      })
-      .catch((e: Error) => {
-        console.log(e);
-      });
-  }
-
-  newTutorial() {
-    this.setState({
-      id: null,
-      title: "",
-      description: "",
-      published: false,
-      submitted: false
-    });
-  }
-
-  render() {
-    const { submitted, title, description } = this.state;
+    const newTutorial = () => {
+        setId(null)
+        setTitle("")
+        setDescription("")
+        setPublished(false)
+        setSubmitted(false)
+    }
 
     return (
-      <div className="submit-form">
+        <div className="submit-form">
         {submitted ? (
-          <div>
-            <h4>You submitted successfully!</h4>
-            <button className="btn btn-success" onClick={this.newTutorial}>
-              Add
-            </button>
-          </div>
+            <div>
+                <h4>You submitted successfully!</h4>
+                <button className="btn btn-success" onClick={newTutorial}>
+                    Add
+                </button>
+            </div>
         ) : (
-          <div>
-            <div className="form-group">
-              <label htmlFor="title">Title</label>
-              <input
-                type="text"
-                className="form-control"
-                id="title"
-                required
-                value={title}
-                onChange={this.onChangeTitle}
-                name="title"
-              />
-            </div>
+            <div>
+                <InputField 
+                    label="Title"
+                    id="title"
+                    type="text"
+                    name="title"
+                    class="form-control"
+                    value={title}
+                    onChange={(value: string) => setTitle(value)}
+                />
 
-            <div className="form-group">
-              <label htmlFor="description">Description</label>
-              <input
-                type="text"
-                className="form-control"
-                id="description"
-                required
-                value={description}
-                onChange={this.onChangeDescription}
-                name="description"
-              />
-            </div>
+                <InputField
+                    label="Description"
+                    id="description"
+                    type="text"
+                    name="description"
+                    class="form-control"
+                    value={description}
+                    onChange={(value: string) => setDescription(value)}
+                />
 
-            <button onClick={this.saveTutorial} className="btn btn-success">
-              Submit
-            </button>
-          </div>
+                <button onClick={saveTutorial} className="btn btn-success">
+                    Submit
+                </button>
+            </div>
         )}
-      </div>
+        </div>
     );
-  }
 }
